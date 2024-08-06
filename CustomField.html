@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Vocabulary Practice</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            text-align: center;
+            margin: 0;
+            padding: 20px;
+            background-color: #f0f0f0;
+        }
+        .container {
+            max-width: 600px;
+            margin: 0 auto;
+            background-color: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        }
+        h1 {
+            font-size: 24px;
+        }
+        .input-group {
+            margin: 20px 0;
+        }
+        .input-group input {
+            width: 100%;
+            padding: 10px;
+            font-size: 18px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+        }
+        .buttons {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+        .buttons button {
+            padding: 10px;
+            font-size: 18px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            background-color: #007bff;
+            color: white;
+        }
+        .buttons button:disabled {
+            background-color: #ccc;
+            cursor: not-allowed;
+        }
+        #result {
+            margin: 20px 0;
+            font-size: 20px;
+            color: green;
+        }
+        #error {
+            margin: 20px 0;
+            font-size: 20px;
+            color: red;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Vocabulary Practice</h1>
+        <div id="question">
+            <p id="phonetics"></p>
+            <div class="input-group">
+                <input type="text" id="answer" placeholder="Type your answer here">
+            </div>
+            <div class="buttons">
+                <button onclick="showMeaning()">Show Meaning</button>
+                <button onclick="playAudio()">Play Pronunciation</button>
+                <button onclick="showHint()">Show Hint</button>
+                <button onclick="giveUp()">Give Up</button>
+            </div>
+            <div id="result"></div>
+            <div id="error"></div>
+        </div>
+    </div>
+
+    <script>
+        const words = [
+            {
+                word: "example",
+                phonetics: "/ɪɡˈzæmpəl/",
+                meaning: "示例",
+                audio: "audio/example.mp3"
+            },
+            // 其他單字
+        ];
+
+        let currentWord = {};
+        let hintsUsed = 0;
+
+        document.getElementById('answer').addEventListener('keydown', function(event) {
+            if (event.key === 'Enter') {
+                checkAnswer();
+            }
+        });
+
+        function getRandomWord() {
+            const index = Math.floor(Math.random() * words.length);
+            return words[index];
+        }
+
+        function loadWord() {
+            currentWord = getRandomWord();
+            hintsUsed = 0;
+            document.getElementById('phonetics').innerText = currentWord.phonetics;
+            document.getElementById('answer').value = '';
+            document.getElementById('result').innerText = '';
+            document.getElementById('error').innerText = '';
+        }
+
+        function checkAnswer() {
+            const answer = document.getElementById('answer').value.trim().toLowerCase();
+            if (answer === currentWord.word.toLowerCase()) {
+                document.getElementById('result').innerText = 'Correct!';
+                updateImportance(-1);
+            } else {
+                document.getElementById('error').innerText = `Wrong! The correct word is: ${currentWord.word}`;
+                updateImportance(5);
+            }
+            setTimeout(loadWord, 2000);
+        }
+
+        function showMeaning() {
+            document.getElementById('result').innerText = `Meaning: ${currentWord.meaning}`;
+            hintsUsed++;
+        }
+
+        function playAudio() {
+            const audio = new Audio(currentWord.audio);
+            audio.play();
+            hintsUsed++;
+        }
+
+        function showHint() {
+            const firstLetter = currentWord.word[0];
+            const lastLetter = currentWord.word[currentWord.word.length - 1];
+            document.getElementById('result').innerText = `Hint: ${firstLetter}...${lastLetter}`;
+            hintsUsed++;
+        }
+
+        function giveUp() {
+            document.getElementById('error').innerText = `The correct word is: ${currentWord.word}`;
+            updateImportance(5);
+            setTimeout(loadWord, 2000);
+        }
+
+        function updateImportance(change) {
+            let importance = parseInt(localStorage.getItem(currentWord.word)) || 10;
+            importance += change;
+            if (hintsUsed === 1) {
+                importance += 3;
+            } else if (hintsUsed === 2) {
+                importance += 4;
+            } else if (hintsUsed === 3) {
+                importance += 5;
+            }
+            localStorage.setItem(currentWord.word, importance);
+        }
+
+        loadWord();
+    </script>
+</body>
+</html>
